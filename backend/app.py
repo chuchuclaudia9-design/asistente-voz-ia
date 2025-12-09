@@ -77,11 +77,14 @@ def transcribe():
     })
 
 # ====== NUEVO: /command ======
+import logging
+logging.basicConfig(level=logging.INFO)
+
 @app.route('/command', methods=['POST'])
 def command():
     texto = request.json.get("text", "").strip().lower()
-    if not texto:
-        return jsonify({"error": "Texto vacío"}), 400
+    logging.info(f"Comando recibido: '{texto}'")
+    # ... resto del código
 
     # === 1. Detección de intención ===
     if "clima" in texto or "tiempo" in texto:
