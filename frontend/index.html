@@ -72,7 +72,7 @@
                 btns[0].textContent = 'Procesando...';
 
                 // Enviar al backend
-                const backendUrl = "https://asistente-voz-backend-wpi8.onrender.com"; // ← ¡CAMBIA ESTO!
+              const backendUrl = "https://asistente-voz-backend-wpi8.onrender.com/transcribe";
                 const response = await fetch(backendUrl, {
                     method: 'POST',
                     body: formData
@@ -82,13 +82,13 @@
                 if (response.ok) {
                     document.getElementById('transcription').textContent = data.transcription;
                     document.getElementById('summary').textContent = data.summary;
-                    const tasksList = document.getElementById('tasks');
-                    tasks => tasksList.innerHTML = '';
-                    data.tasks.forEach(task => {
-                        const li = document.createElement('li');
-                        li.textContent = task;
-                        tasksList.appendChild(li);
-                    });
+                   const tasksList = document.getElementById('tasks');
+tasksList.innerHTML = '';  // ← así
+data.tasks.forEach(task => {
+    const li = document.createElement('li');
+    li.textContent = task;
+    tasksList.appendChild(li);
+});
                     document.getElementById('result').style.display = 'block';
                 } else {
                     alert("Error: " + (data.error || "No se pudo procesar"));
