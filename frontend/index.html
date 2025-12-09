@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>🎙️ Asistente de Voz - Productividad Fácil</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+        h1 { text-align: center; color: #2c3e50; }
+        .btn {
+            padding: 12px 24px;
+            font-size: 18px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #3498db;
+            color: white;
+        }
+        .btn:disabled { background: #bdc3c7; }
+        #result { margin-top: 30px; background: white; padding: 15px; border-radius: 8px; display: none; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>🎙️ Asistente de Productividad por Voz</h1>
+    <p style="text-align:center;">Graba tu voz y deja que el sistema haga el resto.</p>
+
+    <div style="text-align:center;">
+        <button id="startBtn" class="btn" onclick="startRecording()">⏺️ Grabar</button>
+        <button id="stopBtn" class="btn" onclick="stopRecording()" disabled>⏹️ Detener</button>
+    </div>
+
+    <div id="result">
+        <h3>Transcripción:</h3>
+        <pre id="transcription"></pre>
+
+        <h3>Resumen:</h3>
+        <pre id="summary"></pre>
+
+        <h3>Tareas Detectadas:</h3>
+        <ul id="tasks"></ul>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        async function startRecording() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'recording.wav');
+
+                document.getElementById('result').style.display = 'none';
+                const btns = document.querySelectorAll('.btn');
+                btns.forEach(b => b.disabled = true);
+                btns[0].textContent = 'Procesando...';
+
+                // Enviar al backend
+                const backendUrl = "https://tu-backend-gratis.onrender.com/transcribe"; // ← ¡CAMBIA ESTO!
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('transcription').textContent = data.transcription;
+                    document.getElementById('summary').textContent = data.summary;
+                    const tasksList = document.getElementById('tasks');
+                    tasks => tasksList.innerHTML = '';
+                    data.tasks.forEach(task => {
+                        const li = document.createElement('li');
+                        li.textContent = task;
+                        tasksList.appendChild(li);
+                    });
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    alert("Error: " + (data.error || "No se pudo procesar"));
+                }
+
+                btns.forEach(b => b.disabled = false);
+                btns[0].textContent = '⏺️ Grabar';
+            };
+
+            mediaRecorder.start();
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+        }
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+    </script>
+</body>
+</html>
