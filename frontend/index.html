@@ -32,10 +32,14 @@
     <h1>🎙️ Asistente de Productividad por Voz</h1>
     <p style="text-align:center;">Graba tu voz y deja que el sistema haga el resto.</p>
 
-    <div style="text-align:center;">
-        <button id="startBtn" class="btn" onclick="startRecording()">⏺️ Grabar</button>
-        <button id="stopBtn" class="btn" onclick="stopRecording()" disabled>⏹️ Detener</button>
-    </div>
+   <div style="text-align:center;">
+    <button id="startBtn" class="btn" onclick="startRecording()">⏺️ Grabar</button>
+    <button id="stopBtn" class="btn" onclick="stopRecording()" disabled>⏹️ Detener</button>
+
+    <p style="margin-top:20px;">O prueba un comando escrito:</p>
+    <input type="text" id="commandInput" placeholder="Ej: ¿clima en Antigua?" style="padding:10px; width:80%; margin:10px;" />
+    <button class="btn" onclick="sendCommand()" style="background:#27ae60;">💬 Enviar comando</button>
+</div>
 
     <div id="result">
         <h3>Transcripción:</h3>
@@ -108,6 +112,30 @@ data.tasks.forEach(task => {
             document.getElementById('startBtn').disabled = false;
             document.getElementById('stopBtn').disabled = true;
         }
+        async function sendCommand() {
+    const input = document.getElementById('commandInput');
+    const text = input.value.trim();
+    if (!text) return alert("Escribe un comando");
+
+    const backendUrl = "https://asistente-voz-backend-wpi8.onrender.com/command";
+    const response = await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+        // Mostrar respuesta en el área de resultados
+        document.getElementById('transcription').textContent = "Comando: " + text;
+        document.getElementById('summary').textContent = data.response;
+        document.getElementById('tasks').innerHTML = ''; // limpiar tareas
+
+        document.getElementById('result').style.display = 'block';
+    } else {
+        alert("Error: " + (data.error || "Falló el comando"));
+    }
+}
     </script>
 </body>
 </html>
